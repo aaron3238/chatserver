@@ -14,15 +14,19 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
 
 # checks whether sufficient arguments have been provided 
-if len(sys.argv) != 3: 
-	print "Correct usage: script, IP address, port number"
+if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
+	print "Correct usage: script, IP address, (optional) port number"
 	exit() 
 
 # takes the first argument from command prompt as IP address 
 IP_address = str(sys.argv[1]) 
 
-# takes second argument from command prompt as port number 
-Port = int(sys.argv[2]) 
+# takes second argument from command prompt as port number
+if len(sys.argv) == 3:
+	Port = int(sys.argv[2]) 
+else:
+  #default port
+  Port = 8888
 
 """ 
 binds the server to an entered IP address and at the 
@@ -38,20 +42,11 @@ increased as per convenience.
 server.listen(100) 
 
 list_of_clients = [] 
+clientNicknames = []
 
 def clientthread(conn, addr, nickname): 
 
 	# sends a message to the client whose user object is conn 
-	conn.send("Welcome to this chatroom!") 
-	while True: 
-		try:
-			message = conn.recv(2048)
-			if message:
-				print "<" + nickname + ">" + " joined the server"
-			break
-		except:
-			continue
-
 	while True: 
 			try: 
 				message = conn.recv(2048) 
@@ -95,40 +90,56 @@ def remove(connection):
 		list_of_clients.remove(connection) 
 
 
-nicknames = []
+
 while True: 
 
 	"""Accepts a connection request and stores two parameters, 
 	conn which is a socket object for that user, and addr 
 	which contains the IP address of the client that just 
 	connected"""
-	conn, addr = server.accept() 
+	conn, addr = server.accept()
 
 	"""Maintains a list of clients for ease of broadcasting 
 	a message to all available people in the chatroom"""
 	list_of_clients.append(conn) 
-
-	nickname = ""
-	while True: # collect nickname from first message
-		try:
-			message = conn.recv(2048)
-			if message:
-				sys.stdout.write(message)
-				nickname = message.rstrip() # strip endline
-				for names in nicknames:
-					if nickname == names:
-						print("nickname already in use")
-						print ("try again...")
-					else:
-						nicknames.append(nickname)
-						break
-		except: 
-			continue
-
+	conn.send("HELLO")
+	
+	while True:
+		uniqueName = True
+		nickname = ""		
+		message = conn.recv(2048)
+		nickname = message.rstrip()
+		for name in clientNicknames:
+			if name == nickname:
+				uniqueName = False
+		if uniqueName:
+			conn.send("READY")
+			clientNicknames.append(nickname)
+			break
+		else:
+			print(clientNicknames)
+			conn.send("RETRY")
+	
+	"""while not uniqueName: # collect nickname from first message
+		message = conn.recv(2048)
+		if message:
+			sys.stdout.write(message)
+			nickname = message.rstrip() # strip endline
+			for names in clientNicknames:
+				print(clientNicknames)
+				if nickname != names:
+					conn.send("RETRY")
+					print("nickname already in use")
+					print ("try again...")
+					uniqueName = True
+					break
+				#if uniqueName:
+				#	clientNicknames.append(nickname)"""
+			
+	#message = conn.recv(2048)
+	#nickname = message.rstrip()
 	# prints the address of the user that just connected 
 	print nickname + " connected"
-
-
 
 	# creates and individual thread for every user 
 	# that connects 

@@ -5,11 +5,17 @@ import select
 import sys 
   
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-if len(sys.argv) != 3: 
-    print "Correct usage: script, IP address, port number"
-    exit() 
+if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
+	print "Correct usage: script, IP address, (optional) port number"
+	exit()  
 IP_address = str(sys.argv[1]) 
-Port = int(sys.argv[2]) 
+# takes second argument from command prompt as port number
+if len(sys.argv) == 3:
+	Port = int(sys.argv[2]) 
+else:
+  #default port
+  Port = 8888
+
 server.connect((IP_address, Port)) 
 sys.stdout.write("Enter a nickname: ")
 message = sys.stdin.readline() 
@@ -47,6 +53,6 @@ while True:
     except KeyboardInterrupt:
         
         break
-server.send(IP_address + " left")
+server.send("BYE")
 sys.stdout.flush() 
 server.close() 
