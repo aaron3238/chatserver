@@ -17,12 +17,12 @@ else:
   Port = 8888
 
 server.connect((IP_address, Port)) 
-sys.stdout.write("Enter a nickname: ")
-message = sys.stdin.readline() 
-server.send(message) 
-sys.stdout.write("<You>") 
-sys.stdout.write(message) 
-sys.stdout.flush() 
+# sys.stdout.write("Enter a nickname: ")
+# message = sys.stdin.readline() 
+# server.send(message) 
+# sys.stdout.write("<You>") 
+# sys.stdout.write(message) 
+# sys.stdout.flush() 
 while True: 
     try:
     # maintains a list of possible input streams 

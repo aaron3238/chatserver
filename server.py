@@ -3,7 +3,7 @@
 import socket 
 import select 
 import sys 
-from thread import *
+from thread import start_new_thread
 
 """The first argument AF_INET is the address domain of the 
 socket. This is used when we have an Internet Domain with 
@@ -18,8 +18,7 @@ if (len(sys.argv) != 2) and (len(sys.argv) != 3):
 	print "Correct usage: script, IP address, (optional) port number"
 	exit() 
 
-# takes the first argument from command prompt as IP address 
-IP_address = str(sys.argv[1]) 
+IP_address = str(sys.argv[1])
 
 # takes second argument from command prompt as port number
 if len(sys.argv) == 3:
@@ -28,25 +27,44 @@ else:
   #default port
   Port = 8888
 
-""" 
-binds the server to an entered IP address and at the 
-specified port number. 
-The client must be aware of these parameters 
-"""
-server.bind((IP_address, Port)) 
-
-""" 
-listens for 100 active connections. This number can be 
-increased as per convenience. 
-"""
+#Binds the server to an entered IP address and at the 
+#specified port number. 
+try:
+	server.bind((IP_address, Port)) 
+except socket.error as err:
+	print err
+	exit()
 server.listen(100) 
-
 list_of_clients = [] 
 clientNicknames = []
 
-def clientthread(conn, addr, nickname): 
+def clientthread(conn, addr, clientNicknames): 
 
 	# sends a message to the client whose user object is conn 
+	conn.send("Users currently connected: ")
+	conn.send(str(clientNicknames))
+	conn.send("\nEnter a unique nickname:")
+	while True:
+		uniqueName = True
+		nickname = ""		
+		message = conn.recv(2048)
+		nickname = message.rstrip()
+		for name in clientNicknames:
+			if name == nickname:
+				uniqueName = False
+		if uniqueName:
+			conn.send("READY")
+			clientNicknames.append(nickname)
+			print nickname + " connected"
+			break
+		else:
+			print(clientNicknames)
+			conn.send("RETRY")
+	
+
+
+
+	
 	while True: 
 			try: 
 				message = conn.recv(2048) 
@@ -68,15 +86,13 @@ def clientthread(conn, addr, nickname):
 			except: 
 				continue
 
-"""Using the below function, we broadcast the message to all 
-clients who's object is not the same as the one sending 
-the message """
+# broadcast to all clients except the one sending it 
 def broadcast(message, connection): 
 	for clients in list_of_clients: 
-		if clients!=connection: 
+		if clients!=connection: # make sure it's not sending to itself
 			try: 
 				clients.send(message) 
-			except: 
+			except: # can't send? 
 				clients.close() 
 
 				# if the link is broken, we remove the client 
@@ -86,8 +102,8 @@ def broadcast(message, connection):
 from the list that was created at the beginning of 
 the program"""
 def remove(connection): 
-	if connection in list_of_clients: 
-		list_of_clients.remove(connection) 
+	if connection in list_of_clients: # check if the connection is in the list of clients 
+		list_of_clients.remove(connection) # remote it 
 
 
 
@@ -104,22 +120,7 @@ while True:
 	list_of_clients.append(conn) 
 	conn.send("HELLO")
 	
-	while True:
-		uniqueName = True
-		nickname = ""		
-		message = conn.recv(2048)
-		nickname = message.rstrip()
-		for name in clientNicknames:
-			if name == nickname:
-				uniqueName = False
-		if uniqueName:
-			conn.send("READY")
-			clientNicknames.append(nickname)
-			break
-		else:
-			print(clientNicknames)
-			conn.send("RETRY")
-	
+
 	"""while not uniqueName: # collect nickname from first message
 		message = conn.recv(2048)
 		if message:
@@ -139,11 +140,9 @@ while True:
 	#message = conn.recv(2048)
 	#nickname = message.rstrip()
 	# prints the address of the user that just connected 
-	print nickname + " connected"
-
 	# creates and individual thread for every user 
 	# that connects 
-	start_new_thread(clientthread,(conn,addr, nickname))	 
+	start_new_thread(clientthread,(conn,addr, clientNicknames))	 
 
 conn.close() 
 server.close() 
