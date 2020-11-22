@@ -9,9 +9,7 @@
 # Due: 24 November 2020
 # Execute: python server.py
 # Python Version: 2.7.5
-# Purpose: Establishes a connection to a server with either TCP or UDP, which are
-#          collected via command line arguments, and prints out a QOTD message from 
-#          the specified server.
+# Description: Server-side code for a python chatroom.
 import socket 
 import select 
 import sys 

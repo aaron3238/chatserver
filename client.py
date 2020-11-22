@@ -1,5 +1,15 @@
-# #
-# Python program to implement client side of chat room. 
+#!/usr/bin/python
+# Contributors: Aaron Pritchard, David Nelson, Nick Morello, Nik Golombek
+# Filename: server.py
+# Class: CSC328 
+# Prof: Dr. Frye 
+# Major: CS
+# Date: 22 November 2020
+# Assignment: Chat Server
+# Due: 24 November 2020
+# Execute: python client.py
+# Python Version: 2.7.5
+# Description: Client-side code for a python chatroom.
 import socket 
 import select 
 import sys 
