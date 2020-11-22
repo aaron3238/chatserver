@@ -53,6 +53,10 @@ while True:
         for socks in read_sockets: 
             if socks == server: 
                 message = socks.recv(2048) 
+                if message == "SERVER CLOSED":
+                    print message
+                    server.close
+                    exit()
                 print message
             else: 
                 message = sys.stdin.readline() 
@@ -61,8 +65,9 @@ while True:
                 sys.stdout.write(message) 
                 sys.stdout.flush() 
     except KeyboardInterrupt:
-        
+        server.send("BYE")
         break
-server.send("BYE")
+
 sys.stdout.flush() 
 server.close() 
+exit()

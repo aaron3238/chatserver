@@ -13,13 +13,14 @@
 import socket 
 import select 
 import sys 
-from thread import start_new_thread
+import threading
 import re
+import time
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
-def clientthread(conn, addr, clientNicknames): 
+def clientthread(conn, addr, clientNicknames, list_of_clients): 
 
 	# sends a message to the client whose user object is conn 
 	conn.send("\nUsers currently connected: ")
@@ -39,7 +40,9 @@ def clientthread(conn, addr, clientNicknames):
 			if uniqueName:
 				conn.send("READY")
 				clientNicknames.append(nickname)
-				print nickname + " connected"
+				joined = nickname + " connected"
+				print(joined)
+				broadcast(joined, conn, list_of_clients)
 				break
 			else:
 				print(clientNicknames)
@@ -51,7 +54,16 @@ def clientthread(conn, addr, clientNicknames):
 	while True: 
 			try: 
 				message = conn.recv(2048) 
-				if message: 
+				
+
+				if message == "BYE":
+					message_to_send = "<" + nickname + ">" " left the chatroom.\n"
+					print(message_to_send)
+					broadcast(message_to_send, conn, list_of_clients)
+					clientNicknames.remove(nickname)
+					remove(conn, list_of_clients)
+					return
+				elif message: 
 
 					"""prints the message and address of the 
 					user who just sent the message on the server 
@@ -60,17 +72,17 @@ def clientthread(conn, addr, clientNicknames):
 
 					# Calls broadcast function to send message to all 
 					message_to_send = "<" + nickname + "> " + message 
-					broadcast(message_to_send, conn) 
+					broadcast(message_to_send, conn, list_of_clients) 
 
 				else: 
 					"""message may have no content if the connection 
 					is broken, in this case we remove the connection"""
-					remove(conn) 
+					remove(conn, list_of_clients) 
 			except: 
 				continue
 
 # broadcast to all clients except the one sending it 
-def broadcast(message, connection): 
+def broadcast(message, connection, list_of_clients): 
 	for clients in list_of_clients: 
 		if clients!=connection: # make sure it's not sending to itself
 			try: 
@@ -79,17 +91,18 @@ def broadcast(message, connection):
 				clients.close() 
 
 				# if the link is broken, we remove the client 
-				remove(clients) 
+				remove(clients, list_of_clients) 
 
 """The following function simply removes the object 
 from the list that was created at the beginning of 
 the program"""
-def remove(connection): 
+def remove(connection, list_of_clients): 
 	if connection in list_of_clients: # check if the connection is in the list of clients 
 		list_of_clients.remove(connection) # remote it 
 
 # Main Thread
 def main():
+	
 	"""The first argument AF_INET is the address domain of the 
 	socket. This is used when we have an Internet Domain with 
 	any two hosts The second argument is the type of socket. 
@@ -122,20 +135,40 @@ def main():
 	server.listen(100) 
 	list_of_clients = [] 
 	clientNicknames = []
+	threads = []
+
+	print("Server started successfully...")
 
 	while True: 
+		try:
+			# Get socket conn and address from client
+			conn, addr = server.accept()
+			# Add conn to a list
+			list_of_clients.append(conn) 
 
-		# Get socket conn and address from client
-		conn, addr = server.accept()
-		# Add conn to a list
-		list_of_clients.append(conn) 
+			conn.send("HELLO")
+			
+			#start_new_thread(clientthread,(conn,addr, clientNicknames))	 
+			try: 
+				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients))
+				threads.append(t)
+				t.daemon = True
+				t.start()
+			except Exception as e:
+				print("Error starting thread: ", e)
 
-		conn.send("HELLO")
-		
-		start_new_thread(clientthread,(conn,addr, clientNicknames))	 
+		except KeyboardInterrupt:
+			message = "SERVER CLOSED"
+			print(message)
+			for conns in list_of_clients:
+				conns.send(message)
+				conns.close()
+			print("test")
+			print("test2")
+			conn.close() 
+			server.close() 
+			return
 
-	conn.close() 
-	server.close() 
 
 if __name__ == '__main__':
     main()
