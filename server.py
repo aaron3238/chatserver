@@ -159,13 +159,10 @@ def main():
 
 		except KeyboardInterrupt:
 			message = "SERVER CLOSED"
-			print(message)
+			print("\n" + message)
 			for conns in list_of_clients:
 				conns.send(message)
 				conns.close()
-			print("test")
-			print("test2")
-			conn.close() 
 			server.close() 
 			return
 
