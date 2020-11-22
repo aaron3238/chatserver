@@ -15,7 +15,6 @@ import select
 import sys 
 import threading
 import re
-import time
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
@@ -152,7 +151,7 @@ def main():
 			try: 
 				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients))
 				threads.append(t)
-				t.daemon = True
+				t.daemon = True # set the client threads to daemons so they end if the main thread ends
 				t.start()
 			except Exception as e:
 				print("Error starting thread: ", e)
