@@ -1,9 +1,21 @@
-import socket 
+import socket
+import sys 
+
+def socket_create():
+
+	try:
+		newSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		return (newSocket)
+	except socket.error as err:
+		sys.stdout.write("Error creating socket: %s" % err)
 
 def read_msg(sock, maxbuff):
 
-	msg = sock.recv(maxbuff)
-	return msg
+	try:
+		msg = sock.recv(maxbuff)
+		return msg
+	except socket.error as err:
+		sys.stdout.write("Error reading data: %s" % err)
 	
 def write_msg(sock, msg, maxbuff):
 

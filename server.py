@@ -105,7 +105,7 @@ def main():
 	any two hosts The second argument is the type of socket. 
 	SOCK_STREAM means that data or characters are read in 
 	a continuous flow."""
-	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+	server = chatlib.socket_create(); 
 	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
 
 

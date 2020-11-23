@@ -19,7 +19,8 @@ import chatlib
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
   
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+server = chatlib.socket_create(); 
+
 if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
 	print "Correct usage: script, IP address, (optional) port number"
 	exit()  
