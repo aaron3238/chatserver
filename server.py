@@ -29,7 +29,7 @@ def log(message):
 	f.write(message)
 	f.close()
 
-def clientthread(conn, addr, clientNicknames, list_of_clients, threadStream):
+
 def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, threadStream):
 	# nickname collection 
 	
@@ -170,10 +170,9 @@ def main():
 			
 			
 			#start_new_thread(clientthread,(conn,addr, clientNicknames))	 
-			try:
-				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, threadStream))
+		
 			try: 
-				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, end_event))
+				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, end_event, threadStream))
 				threads.append(t)
 				#t.daemon = True # set the client threads to daemons so they end if the main thread ends
 				t.start()
