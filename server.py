@@ -73,9 +73,6 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event):
 				else: 
 					# if the message is empty or broken remove the connection
 					remove(conn, list_of_clients) 
-			except KeyboardInterrupt:
-				print("test")
-				break
 			except: 
 				continue
 	return
