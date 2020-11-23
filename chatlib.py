@@ -25,11 +25,12 @@ def write_msg(sock, msg, maxbuff):
 		try:
 			sock.send(msg)
 			return 1
-		except: # can't send? 
+		except socket.error as err: # can't send? 
+			sys.stdout.write("Error writing data: %s" % err)
 			sock.close()
 			#Need code to 
-			return 0
+			return -1
 	else:
 		print("Error: Message exceeds bufffersize")
-		return -1
+		return 0
 		

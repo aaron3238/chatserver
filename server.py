@@ -15,14 +15,21 @@ import select
 import sys 
 import threading
 import re
-import time
+from datetime import datetime
+from datetime import time
 import logging
 import chatlib
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
-def clientthread(conn, addr, clientNicknames, list_of_clients):
+def log(message):
+	f = open("chatlog.txt", "a")
+	print(message)
+	f.write(message)
+	f.close()
+
+def clientthread(conn, addr, clientNicknames, list_of_clients, threadStream):
 	# nickname collection 
 	
 	while True:
@@ -42,9 +49,10 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 			if uniqueName:
 				conn.send("READY")
 				clientNicknames.append(nickname)
-				joined = nickname + " connected"
-				print(joined)
-				broadcast(joined, conn, list_of_clients)
+				dateTime = datetime.now()
+				threadStream[0] = str(dateTime) + " " + str(addr) + " " + nickname + "\n"
+				print(threadStream[0])
+				broadcast(nickname, conn, list_of_clients)
 				break
 			else:
 				conn.send("RETRY")
@@ -67,7 +75,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 					thread.exit()
 					return
 				elif message: 
-					print "<" + nickname + "> " + message 
+					threadStream[0] = nickname + ":" + message + "\n"
 					# Calls broadcast function to send message to all 
 					message_to_send = "<" + nickname + "> " + message 
 					broadcast(message_to_send, conn, list_of_clients) 
@@ -106,7 +114,7 @@ def main():
 	a continuous flow."""
 	server = chatlib.socket_create(); 
 	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-
+	server.setblocking(0)
 
 
 
@@ -138,26 +146,34 @@ def main():
 
 	print("Server started successfully...")
 
+	threadStream = [" "]
+	
+	
 	while True: 
-		
+		#print "here"
+		if threadStream[0] != " ":
+			log(threadStream[0])
+			threadStream[0] = " "
 		try:
 			# Get socket conn and address from client
+			
+			
 			conn, addr = server.accept()
-			# Add conn to a list
 			list_of_clients.append(conn) 
-
 			conn.send("HELLO")
 			
+			# Add conn to a list
+			
+			
 			#start_new_thread(clientthread,(conn,addr, clientNicknames))	 
-			try: 
-				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients))
+			try:
+				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, threadStream))
 				threads.append(t)
 				t.daemon = True # set the client threads to daemons so they end if the main thread ends
 				t.start()
 			except Exception as e:
 				print("Error starting thread: ", e)
-			
-
+		
 		except KeyboardInterrupt:
 			message = "SERVER CLOSING IN 5 SECONDS"
 			print("\n" + message)
@@ -169,6 +185,9 @@ def main():
 				conns.close()
 			server.close() 
 			return
+		except:
+			pass
+	
 
 if __name__ == '__main__':
     main()
