@@ -22,10 +22,10 @@ import chatlib
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
-def clientthread(conn, addr, clientNicknames, list_of_clients):
+def clientthread(conn, addr, clientNicknames, list_of_clients, end_event):
 	# nickname collection 
 	
-	while True:
+	while end_event.is_set():
 		uniqueName = True
 		nickname = ""		
 		message = conn.recv(MAXBUFFERSIZE) 
@@ -52,11 +52,10 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 			conn.send("INVALID")
 			
 	# start waiting for regular messages
-	while True: 
+	while end_event.is_set(): 
 			try: 
 				message = conn.recv(2048) 
 				message = message.rstrip() # strip newlines
-				
 
 				if message == "BYE": # if client disconnects
 					message_to_send = "<" + nickname + ">" " left the chatroom.\n"
@@ -64,8 +63,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 					broadcast(message_to_send, conn, list_of_clients) # let everyone know 
 					clientNicknames.remove(nickname) # remove from list of nicknames
 					remove(conn, list_of_clients) # remove the connection
-					thread.exit()
-					return
+					break
 				elif message: 
 					print "<" + nickname + "> " + message 
 					# Calls broadcast function to send message to all 
@@ -75,8 +73,12 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 				else: 
 					# if the message is empty or broken remove the connection
 					remove(conn, list_of_clients) 
+			except KeyboardInterrupt:
+				print("test")
+				break
 			except: 
 				continue
+	return
 
 # broadcast to all clients except the one sending it 
 def broadcast(message, connection, list_of_clients): 
@@ -107,7 +109,9 @@ def main():
 	server = chatlib.socket_create(); 
 	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
 
-
+	# create an event to signal subthreads to end
+	end_event = threading.Event()
+	end_event.set()
 
 
 	# checks whether sufficient arguments have been provided 
@@ -150,9 +154,9 @@ def main():
 			
 			#start_new_thread(clientthread,(conn,addr, clientNicknames))	 
 			try: 
-				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients))
+				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, end_event))
 				threads.append(t)
-				t.daemon = True # set the client threads to daemons so they end if the main thread ends
+				#t.daemon = True # set the client threads to daemons so they end if the main thread ends
 				t.start()
 			except Exception as e:
 				print("Error starting thread: ", e)
@@ -165,10 +169,15 @@ def main():
 			time.sleep(5)
 			message = "SERVER CLOSED"
 			broadcast(message, server, list_of_clients)
+			end_event.clear() # trigger the event so that the subthreads end their while loops
+			for t in threads:
+				t.join()
 			for conns in list_of_clients:
 				conns.close()
 			server.close() 
-			return
+			break
+	return
+
 
 if __name__ == '__main__':
     main()
