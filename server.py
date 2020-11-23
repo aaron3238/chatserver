@@ -16,7 +16,7 @@ import sys
 import threading
 import re
 from datetime import datetime
-from datetime import time
+import time
 import logging
 import chatlib
 
@@ -161,23 +161,26 @@ def main():
 		try:
 			# Get socket conn and address from client
 			
+			try:
+				conn, addr = server.accept()
+				list_of_clients.append(conn) 
+				conn.send("HELLO")
+				time.sleep(1)
+				
+				# Add conn to a list
+				
+				
+				#start_new_thread(clientthread,(conn,addr, clientNicknames))	 
 			
-			conn, addr = server.accept()
-			list_of_clients.append(conn) 
-			conn.send("HELLO")
-			
-			# Add conn to a list
-			
-			
-			#start_new_thread(clientthread,(conn,addr, clientNicknames))	 
-		
-			try: 
-				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, end_event, threadStream))
-				threads.append(t)
-				#t.daemon = True # set the client threads to daemons so they end if the main thread ends
-				t.start()
-			except Exception as e:
-				print("Error starting thread: ", e)
+				try: 
+					t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients, end_event, threadStream))
+					threads.append(t)
+					#t.daemon = True # set the client threads to daemons so they end if the main thread ends
+					t.start()
+				except Exception as e:
+					print("Error starting thread: ", e)
+			except:
+				pass
 		
 		except KeyboardInterrupt:
 			message = "SERVER CLOSING IN 5 SECONDS"
@@ -193,10 +196,8 @@ def main():
 				conns.close()
 			server.close() 
 			return
-		except:
-			pass
+		
 	
-			break
 	return
 
 
