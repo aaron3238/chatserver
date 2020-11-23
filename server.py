@@ -22,7 +22,7 @@ global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
 def clientthread(conn, addr, clientNicknames, list_of_clients):
-	# sends a message to the client whose user object is conn 
+	# nickname collection 
 	conn.send("\nUsers currently connected: ")
 	conn.send(str(clientNicknames))
 	conn.send("\nEnter a unique nickname:")
@@ -30,14 +30,14 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 		uniqueName = True
 		nickname = ""		
 		message = conn.recv(MAXBUFFERSIZE) 
-		nickname = message.rstrip()
-		if nickname == "BYE":
+		nickname = message.rstrip() # get rid of the newline
+		if nickname == "BYE": # in case the client disconnects before making a nickname
 			print(str(addr) + " Left before creating a nickname")
 			remove(conn, list_of_clients)
 			return
-		if re.match("^[a-zA-Z0-9]{2,30}$", nickname):
+		if re.match("^[a-zA-Z0-9]{2,30}$", nickname): # ensure the nickname is alphanumeric, no spaces allowed
 
-			for name in clientNicknames:
+			for name in clientNicknames: # ensure the nickname is unique
 				if name == nickname:
 					uniqueName = False
 			if uniqueName:
@@ -53,19 +53,19 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 		else:
 			conn.send("Nickname must be alphanumberic and 2-30 Characters\n")
 			conn.send("RETRY")
-	
+	# start waiting for regular messages
 	while True: 
 			try: 
 				message = conn.recv(2048) 
-				message = message.rstrip()
+				message = message.rstrip() # strip newlines
 				
 
-				if message == "BYE":
+				if message == "BYE": # if client disconnects
 					message_to_send = "<" + nickname + ">" " left the chatroom.\n"
 					print(message_to_send)
-					broadcast(message_to_send, conn, list_of_clients)
-					clientNicknames.remove(nickname)
-					remove(conn, list_of_clients)
+					broadcast(message_to_send, conn, list_of_clients) # let everyone know 
+					clientNicknames.remove(nickname) # remove from list of nicknames
+					remove(conn, list_of_clients) # remove the connection
 					return
 				elif message: 
 					print "<" + nickname + "> " + message 
@@ -74,8 +74,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 					broadcast(message_to_send, conn, list_of_clients) 
 
 				else: 
-					"""message may have no content if the connection 
-					is broken, in this case we remove the connection"""
+					# if the message is empty or broken remove the connection
 					remove(conn, list_of_clients) 
 			except: 
 				continue
