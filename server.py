@@ -17,6 +17,7 @@ import threading
 import re
 import time
 import logging
+import chatlib
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
@@ -25,7 +26,6 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 	# nickname collection 
 	conn.send("\nUsers currently connected: ")
 	conn.send(str(clientNicknames))
-	conn.send("\nEnter a unique nickname:")
 	while True:
 		uniqueName = True
 		nickname = ""		
@@ -51,8 +51,8 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 				print(clientNicknames)
 				conn.send("RETRY")
 		else:
-			conn.send("Nickname must be alphanumberic and 2-30 Characters\n")
-			conn.send("RETRY")
+			conn.send("INVALID")
+			
 	# start waiting for regular messages
 	while True: 
 			try: 

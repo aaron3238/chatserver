@@ -14,6 +14,7 @@ import socket
 import select 
 import sys 
 import time
+import chatlib
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
@@ -37,6 +38,7 @@ except Exception as e:
     print(e)
     server.close()
     exit()
+   
 
 while True: 
     try:
@@ -54,23 +56,38 @@ while True:
     
         read_sockets,write_socket, error_socket = select.select(sockets_list,[],[]) 
 
-     
+    
         for socks in read_sockets: 
-            if socks == server: 
-                message = socks.recv(MAXBUFFERSIZE) 
+            if socks == server:
+                message = chatlib.read_msg(socks,MAXBUFFERSIZE) 
                 if message == "SERVER CLOSED":
                     print message
                     server.close
                     exit()
-                print message
-            else: 
+                elif message == "HELLO":
+                    print ("Enter a unique nickname:")
+                    nickname = sys.stdin.readline()
+                    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+                elif message == "READY":
+                    print ("You may now talk in the chatroom. You may exit at anytime by using Ctrl + c.")
+                elif message == "RETRY":
+                    print("That nickname is already in use. Try again.")
+                    nickname = sys.stdin.readline()
+                    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+                elif message == "INVALID":
+                    print("Nickname must be alphanumberic and 2-30 Characters. Try again.")
+                    nickname = sys.stdin.readline()
+                    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+                else:
+                    print message
+            else:
                 message = sys.stdin.readline() 
-                server.send(message) 
+                chatlib.write_msg(server, message, MAXBUFFERSIZE) 
                 sys.stdout.write("<You>") 
                 sys.stdout.write(message) 
                 sys.stdout.flush() 
     except KeyboardInterrupt:
-        server.send("BYE")
+        chatlib.write_msg(server, "BYE", MAXBUFFERSIZE)
         break
 
 sys.stdout.flush() 
