@@ -52,7 +52,6 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 				clientNicknames.append(nickname)
 				dateTime = datetime.now()
 				threadStream[0] = str(dateTime) + " " + str(addr) + " " + nickname + "\n"
-				print(threadStream[0])
 				broadcast(nickname, conn, list_of_clients)
 				break
 			else:
@@ -165,7 +164,6 @@ def main():
 				conn, addr = server.accept()
 				list_of_clients.append(conn) 
 				conn.send("HELLO")
-				time.sleep(1)
 				
 				# Add conn to a list
 				
@@ -179,7 +177,7 @@ def main():
 					t.start()
 				except Exception as e:
 					print("Error starting thread: ", e)
-			except:
+			except: # catches errno11 because accept is no longer a blocking call
 				pass
 		
 		except KeyboardInterrupt:
