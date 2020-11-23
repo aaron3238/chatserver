@@ -54,6 +54,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 	while True: 
 			try: 
 				message = conn.recv(2048) 
+				message = message.rstrip()
 				
 
 				if message == "BYE":
@@ -84,7 +85,6 @@ def broadcast(message, connection, list_of_clients):
 				clients.send(message) 
 			except: # can't send? 
 				clients.close() 
-
 				# if the link is broken, we remove the client 
 				remove(clients, list_of_clients) 
 
@@ -154,6 +154,7 @@ def main():
 
 		except KeyboardInterrupt:
 			message = "SERVER CLOSING IN 3 SECONDS"
+			print("\n" + message)
 			broadcast(message, server, list_of_clients)
 			time.sleep(3)
 			for conns in list_of_clients:
