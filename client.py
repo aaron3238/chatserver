@@ -18,7 +18,12 @@ import chatlib
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
-  
+
+def setNickname():
+    nickname = sys.stdin.readline()
+    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+    sys.stdout.flush()
+
 server = chatlib.socket_create(); 
 
 if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
@@ -40,7 +45,7 @@ except Exception as e:
     server.close()
     exit()
    
-
+nickSet = ""
 while True: 
     try:
     # maintains a list of possible input streams 
@@ -66,31 +71,38 @@ while True:
                     server.close
                     exit()
                 elif message == "HELLO":
-                    print ("Enter a unique nickname:")
-                    nickname = sys.stdin.readline()
-                    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+                    print("Enter a unique nickname:")
+                    nickSet = "INIT"
                 elif message == "READY":
                     print ("You may now talk in the chatroom. You may exit at anytime by using Ctrl + c.")
+                    nickSet = True
                 elif message == "RETRY":
                     print("That nickname is already in use. Try again.")
-                    nickname = sys.stdin.readline()
-                    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+                    nickSet = "RETRY"
                 elif message == "INVALID":
                     print("Nickname must be alphanumberic and 2-30 Characters. Try again.")
-                    nickname = sys.stdin.readline()
-                    chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
+                    nickSet = "INVALID"
                 else:
                     print message
-            else:
-                message = sys.stdin.readline() 
-                chatlib.write_msg(server, message, MAXBUFFERSIZE) 
-                sys.stdout.write("<You>") 
-                sys.stdout.write(message) 
-                sys.stdout.flush() 
+            elif nickSet == "INIT":
+                setNickname()
+                nickSet = ""
+            elif nickSet == "RETRY":
+                setNickname()
+                nickSet = ""
+            elif nickSet == "INVALID":
+                setNickname()
+                nickSet = ""
+            elif nickSet == True:
+                message = sys.stdin.readline()
+                chatlib.write_msg(server, message, MAXBUFFERSIZE)
+                sys.stdout.write("<You>")
+                sys.stdout.write(message)
+                sys.stdout.flush()
     except KeyboardInterrupt:
         chatlib.write_msg(server, "BYE", MAXBUFFERSIZE)
         break
 
-sys.stdout.flush() 
-server.close() 
+sys.stdout.flush()
+server.close()
 exit()

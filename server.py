@@ -24,8 +24,7 @@ MAXBUFFERSIZE = 2048
 
 def clientthread(conn, addr, clientNicknames, list_of_clients):
 	# nickname collection 
-	conn.send("\nUsers currently connected: ")
-	conn.send(str(clientNicknames))
+	
 	while True:
 		uniqueName = True
 		nickname = ""		
@@ -48,7 +47,6 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 				broadcast(joined, conn, list_of_clients)
 				break
 			else:
-				print(clientNicknames)
 				conn.send("RETRY")
 		else:
 			conn.send("INVALID")
@@ -66,6 +64,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 					broadcast(message_to_send, conn, list_of_clients) # let everyone know 
 					clientNicknames.remove(nickname) # remove from list of nicknames
 					remove(conn, list_of_clients) # remove the connection
+					thread.exit()
 					return
 				elif message: 
 					print "<" + nickname + "> " + message 
@@ -140,6 +139,7 @@ def main():
 	print("Server started successfully...")
 
 	while True: 
+		
 		try:
 			# Get socket conn and address from client
 			conn, addr = server.accept()
