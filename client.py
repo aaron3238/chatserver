@@ -30,7 +30,14 @@ else:
   #default port
   Port = 8888
 
-server.connect((IP_address, Port)) 
+server.settimeout(5)
+try:
+    server.connect((IP_address, Port)) 
+except Exception as e: 
+    print(e)
+    server.close()
+    exit()
+    
 # sys.stdout.write("Enter a nickname: ")
 # message = sys.stdin.readline() 
 # server.send(message) 
