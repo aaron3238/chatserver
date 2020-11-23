@@ -13,6 +13,10 @@
 import socket 
 import select 
 import sys 
+import time
+
+global MAXBUFFERSIZE
+MAXBUFFERSIZE = 2048
   
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
@@ -52,9 +56,10 @@ while True:
      
         for socks in read_sockets: 
             if socks == server: 
-                message = socks.recv(2048) 
-                if message == "SERVER CLOSED":
+                message = socks.recv(MAXBUFFERSIZE) 
+                if message == "SERVER CLOSING IN 3 SECONDS":
                     print message
+                    time.sleep(3)
                     server.close
                     exit()
                 print message

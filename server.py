@@ -15,6 +15,7 @@ import select
 import sys 
 import threading
 import re
+import time
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
@@ -63,12 +64,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 					remove(conn, list_of_clients)
 					return
 				elif message: 
-
-					"""prints the message and address of the 
-					user who just sent the message on the server 
-					terminal"""
 					print "<" + nickname + "> " + message 
-
 					# Calls broadcast function to send message to all 
 					message_to_send = "<" + nickname + "> " + message 
 					broadcast(message_to_send, conn, list_of_clients) 
@@ -157,11 +153,12 @@ def main():
 				print("Error starting thread: ", e)
 
 		except KeyboardInterrupt:
-			message = "SERVER CLOSED"
-			print("\n" + message)
+			message = "SERVER CLOSING IN 3 SECONDS"
+			broadcast(message, server, list_of_clients)
+			time.sleep(3)
 			for conns in list_of_clients:
-				conns.send(message)
 				conns.close()
+
 			server.close() 
 			return
 
