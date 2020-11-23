@@ -13,6 +13,10 @@
 import socket 
 import select 
 import sys 
+import time
+
+global MAXBUFFERSIZE
+MAXBUFFERSIZE = 2048
   
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
@@ -26,13 +30,14 @@ else:
   #default port
   Port = 8888
 
-server.connect((IP_address, Port)) 
-# sys.stdout.write("Enter a nickname: ")
-# message = sys.stdin.readline() 
-# server.send(message) 
-# sys.stdout.write("<You>") 
-# sys.stdout.write(message) 
-# sys.stdout.flush() 
+server.settimeout(5)
+try:
+    server.connect((IP_address, Port)) 
+except Exception as e: 
+    print(e)
+    server.close()
+    exit()
+
 while True: 
     try:
     # maintains a list of possible input streams 
@@ -52,7 +57,7 @@ while True:
      
         for socks in read_sockets: 
             if socks == server: 
-                message = socks.recv(2048) 
+                message = socks.recv(MAXBUFFERSIZE) 
                 if message == "SERVER CLOSED":
                     print message
                     server.close

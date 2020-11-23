@@ -16,13 +16,13 @@ import sys
 import threading
 import re
 import time
+import logging
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
-def clientthread(conn, addr, clientNicknames, list_of_clients): 
-
-	# sends a message to the client whose user object is conn 
+def clientthread(conn, addr, clientNicknames, list_of_clients):
+	# nickname collection 
 	conn.send("\nUsers currently connected: ")
 	conn.send(str(clientNicknames))
 	conn.send("\nEnter a unique nickname:")
@@ -30,11 +30,14 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 		uniqueName = True
 		nickname = ""		
 		message = conn.recv(MAXBUFFERSIZE) 
-		nickname = message.rstrip()
+		nickname = message.rstrip() # get rid of the newline
+		if nickname == "BYE": # in case the client disconnects before making a nickname
+			print(str(addr) + " Left before creating a nickname")
+			remove(conn, list_of_clients)
+			return
+		if re.match("^[a-zA-Z0-9]{2,30}$", nickname): # ensure the nickname is alphanumeric, no spaces allowed
 
-		if re.match("^[a-zA-Z0-9]{2,30}$", nickname):
-
-			for name in clientNicknames:
+			for name in clientNicknames: # ensure the nickname is unique
 				if name == nickname:
 					uniqueName = False
 			if uniqueName:
@@ -50,33 +53,28 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 		else:
 			conn.send("Nickname must be alphanumberic and 2-30 Characters\n")
 			conn.send("RETRY")
-	
+	# start waiting for regular messages
 	while True: 
 			try: 
 				message = conn.recv(2048) 
+				message = message.rstrip() # strip newlines
 				
 
-				if message == "BYE":
+				if message == "BYE": # if client disconnects
 					message_to_send = "<" + nickname + ">" " left the chatroom.\n"
 					print(message_to_send)
-					broadcast(message_to_send, conn, list_of_clients)
-					clientNicknames.remove(nickname)
-					remove(conn, list_of_clients)
+					broadcast(message_to_send, conn, list_of_clients) # let everyone know 
+					clientNicknames.remove(nickname) # remove from list of nicknames
+					remove(conn, list_of_clients) # remove the connection
 					return
 				elif message: 
-
-					"""prints the message and address of the 
-					user who just sent the message on the server 
-					terminal"""
 					print "<" + nickname + "> " + message 
-
 					# Calls broadcast function to send message to all 
 					message_to_send = "<" + nickname + "> " + message 
 					broadcast(message_to_send, conn, list_of_clients) 
 
 				else: 
-					"""message may have no content if the connection 
-					is broken, in this case we remove the connection"""
+					# if the message is empty or broken remove the connection
 					remove(conn, list_of_clients) 
 			except: 
 				continue
@@ -89,7 +87,6 @@ def broadcast(message, connection, list_of_clients):
 				clients.send(message) 
 			except: # can't send? 
 				clients.close() 
-
 				# if the link is broken, we remove the client 
 				remove(clients, list_of_clients) 
 
@@ -110,6 +107,9 @@ def main():
 	a continuous flow."""
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+
+
+
 
 	# checks whether sufficient arguments have been provided 
 	if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
@@ -152,20 +152,23 @@ def main():
 			try: 
 				t = threading.Thread(target=clientthread, args=(conn, addr, clientNicknames, list_of_clients))
 				threads.append(t)
-				t.daemon = True
+				t.daemon = True # set the client threads to daemons so they end if the main thread ends
 				t.start()
 			except Exception as e:
 				print("Error starting thread: ", e)
+			
 
 		except KeyboardInterrupt:
-			message = "SERVER CLOSED"
+			message = "SERVER CLOSING IN 5 SECONDS"
 			print("\n" + message)
+			broadcast(message, server, list_of_clients)
+			time.sleep(5)
+			message = "SERVER CLOSED"
+			broadcast(message, server, list_of_clients)
 			for conns in list_of_clients:
-				conns.send(message)
 				conns.close()
 			server.close() 
 			return
-
 
 if __name__ == '__main__':
     main()
