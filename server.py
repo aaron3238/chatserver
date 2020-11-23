@@ -31,7 +31,10 @@ def clientthread(conn, addr, clientNicknames, list_of_clients):
 		nickname = ""		
 		message = conn.recv(MAXBUFFERSIZE) 
 		nickname = message.rstrip()
-
+		if nickname == "BYE":
+			print(str(addr) + " Left before creating a nickname")
+			remove(conn, list_of_clients)
+			return
 		if re.match("^[a-zA-Z0-9]{2,30}$", nickname):
 
 			for name in clientNicknames:
