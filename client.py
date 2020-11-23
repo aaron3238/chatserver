@@ -37,13 +37,7 @@ except Exception as e:
     print(e)
     server.close()
     exit()
-    
-# sys.stdout.write("Enter a nickname: ")
-# message = sys.stdin.readline() 
-# server.send(message) 
-# sys.stdout.write("<You>") 
-# sys.stdout.write(message) 
-# sys.stdout.flush() 
+
 while True: 
     try:
     # maintains a list of possible input streams 

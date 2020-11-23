@@ -165,7 +165,6 @@ def main():
 			broadcast(message, server, list_of_clients)
 			for conns in list_of_clients:
 				conns.close()
-
 			server.close() 
 			return
 
