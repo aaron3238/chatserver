@@ -16,12 +16,12 @@ import sys
 import threading
 import re
 import time
+import logging
 
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
-def clientthread(conn, addr, clientNicknames, list_of_clients): 
-
+def clientthread(conn, addr, clientNicknames, list_of_clients):
 	# sends a message to the client whose user object is conn 
 	conn.send("\nUsers currently connected: ")
 	conn.send(str(clientNicknames))
@@ -106,6 +106,9 @@ def main():
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
 
+
+
+
 	# checks whether sufficient arguments have been provided 
 	if (len(sys.argv) != 2) and (len(sys.argv) != 3): 
 		print "Correct usage: script, IP address, (optional) port number"
@@ -151,18 +154,20 @@ def main():
 				t.start()
 			except Exception as e:
 				print("Error starting thread: ", e)
+			
 
 		except KeyboardInterrupt:
-			message = "SERVER CLOSING IN 3 SECONDS"
+			message = "SERVER CLOSING IN 5 SECONDS"
 			print("\n" + message)
 			broadcast(message, server, list_of_clients)
-			time.sleep(3)
+			time.sleep(5)
+			message = "SERVER CLOSED"
+			broadcast(message, server, list_of_clients)
 			for conns in list_of_clients:
 				conns.close()
 
 			server.close() 
 			return
-
 
 if __name__ == '__main__':
     main()

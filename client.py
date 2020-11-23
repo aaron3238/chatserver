@@ -57,9 +57,8 @@ while True:
         for socks in read_sockets: 
             if socks == server: 
                 message = socks.recv(MAXBUFFERSIZE) 
-                if message == "SERVER CLOSING IN 3 SECONDS":
+                if message == "SERVER CLOSED":
                     print message
-                    time.sleep(3)
                     server.close
                     exit()
                 print message
