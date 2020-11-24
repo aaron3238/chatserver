@@ -4,7 +4,7 @@
 # Class: CSC328 
 # Prof: Dr. Frye 
 # Major: CS
-# Date: 22 November 2020
+# Date: 14 November 2020
 # Assignment: Chat Server
 # Due: 24 November 2020
 # Execute: python server.py
