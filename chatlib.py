@@ -1,3 +1,14 @@
+# Contributors: Aaron Pritchard, David Nelson, Nick Morello, Nik Golombek
+# Filename: chatlib.py
+# Class: CSC328 
+# Prof: Dr. Frye 
+# Major: CS
+# Date: 22 November 2020
+# Assignment: Chat Server
+# Due: 24 November 2020
+# Python Version: 2.7.5
+# Description: Library functions for use with the server and client code.
+
 import socket
 import sys 
 
