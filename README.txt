@@ -54,5 +54,23 @@ David Nelson                                              X              X
 Aaron Pritchard             X
 
 
+Protocol:
+
+The following messages sent back from the client to the server or vice-versa have the 
+following meanings according to our chat server protocol:
+
+HELLO – sent by server upon client connection
+BYE – sent by client on disconnect
+NICK – sent by client and contains the user’s selected nickname
+READY – sent by server after successful registration (nickname)
+RETRY – sent by server if nickname selected is not unique
+INVALID - sent by server if nickname selected does not conform to nickname standards
+
+Assumptions:
+
+A reasonable amount of clients will be connecting to the server at any given time
+
+
+
 
 
