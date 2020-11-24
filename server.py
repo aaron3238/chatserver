@@ -36,44 +36,43 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 	while end_event.is_set():
 		uniqueName = True
 		nickname = ""		
-		message = conn.recv(MAXBUFFERSIZE) 
+		message = chatlib.read_msg(conn,MAXBUFFERSIZE) 
 		nickname = message.rstrip() # get rid of the newline
 		if nickname == "BYE": # in case the client disconnects before making a nickname
-			print(str(addr) + " Left before creating a nickname")
+			threadStream[0] = str(addr) + " Left before creating a nickname"
 			remove(conn, list_of_clients)
 			return
 		if re.match("^[a-zA-Z0-9]{2,30}$", nickname): # ensure the nickname is alphanumeric, no spaces allowed
-
 			for name in clientNicknames: # ensure the nickname is unique
 				if name == nickname:
 					uniqueName = False
 			if uniqueName:
-				conn.send("READY")
+				chatlib.write_msg(conn, "READY", MAXBUFFERSIZE)
 				clientNicknames.append(nickname)
 				dateTime = datetime.now()
 				threadStream[0] = str(dateTime) + " " + str(addr) + " " + nickname + "\n"
 				broadcast(nickname, conn, list_of_clients)
 				break
 			else:
-				conn.send("RETRY")
+				chatlib.write_msg(conn, "RETRY", MAXBUFFERSIZE)
 		else:
-			conn.send("INVALID")
+			chatlib.write_msg(conn, "INVALID", MAXBUFFERSIZE)
 			
 	# start waiting for regular messages
 	while end_event.is_set(): 
 			try: 
-				message = conn.recv(2048) 
+				message = chatlib.read_msg(conn,MAXBUFFERSIZE)
 				message = message.rstrip() # strip newlines
 
 				if message == "BYE": # if client disconnects
 					message_to_send = "<" + nickname + ">" " left the chatroom.\n"
-					print(message_to_send)
+					threadStream[0] = message_to_send
 					broadcast(message_to_send, conn, list_of_clients) # let everyone know 
 					clientNicknames.remove(nickname) # remove from list of nicknames
 					remove(conn, list_of_clients) # remove the connection
 					break
 				elif message: 
-					threadStream[0] = nickname + ":" + message + "\n"
+					threadStream[0] = nickname + ": " + message + "\n"
 					# Calls broadcast function to send message to all 
 					message_to_send = "<" + nickname + "> " + message 
 					broadcast(message_to_send, conn, list_of_clients) 
@@ -90,7 +89,7 @@ def broadcast(message, connection, list_of_clients):
 	for clients in list_of_clients: 
 		if clients!=connection: # make sure it's not sending to itself
 			try: 
-				clients.send(message) 
+				chatlib.write_msg(clients, message, MAXBUFFERSIZE)
 			except: # can't send? 
 				clients.close() 
 				# if the link is broken, we remove the client 
@@ -111,10 +110,13 @@ def main():
 	any two hosts The second argument is the type of socket. 
 	SOCK_STREAM means that data or characters are read in 
 	a continuous flow."""
-	server = chatlib.socket_create(); 
-	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-	server.setblocking(0)
-
+	server = chatlib.socket_create();
+	try: 
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+		server.setblocking(0)
+	except socket.error as err:
+		print("Socket error: %s" % err)
+		exit()
 
 	# create an event to signal subthreads to end
 	end_event = threading.Event()
@@ -139,10 +141,11 @@ def main():
 	#specified port number. 
 	try:
 		server.bind((IP_address, Port)) 
+		server.listen(100)
 	except socket.error as err:
-		print err
+		print ("Socket error: %s" % err)
 		exit()
-	server.listen(100) 
+	 
 	list_of_clients = [] 
 	clientNicknames = []
 	threads = []
@@ -162,8 +165,8 @@ def main():
 			
 			try:
 				conn, addr = server.accept()
-				list_of_clients.append(conn) 
-				conn.send("HELLO")
+				list_of_clients.append(conn)
+				chatlib.write_msg(conn, "HELLO", MAXBUFFERSIZE) 
 				
 				# Add conn to a list
 				
@@ -177,8 +180,12 @@ def main():
 					t.start()
 				except Exception as e:
 					print("Error starting thread: ", e)
-			except: # catches errno11 because accept is no longer a blocking call
-				pass
+			except socket.error as err: 
+			# catches errno11 because accept is no longer a blocking call
+				if err.errno == 11:
+					pass
+				else:
+					print("Socket error: %s" % err)
 		
 		except KeyboardInterrupt:
 			message = "SERVER CLOSING IN 5 SECONDS"
@@ -194,9 +201,6 @@ def main():
 				conns.close()
 			server.close() 
 			return
-		
-	
-	return
 
 
 if __name__ == '__main__':
