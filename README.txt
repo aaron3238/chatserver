@@ -16,5 +16,24 @@ To run the client-side portion of the network program, this is the command and u
 
 python client.py <hostname> <port number>
 
-Where the hostname is the IP address of the server the client will connect to, and the
-port number is the port number that the server will be running on
+Where <hostname> is the IP address of the server the client will connect to, and the
+port number is the port number that the server will be running on. <port number> is
+an optional command line argument allowing the client to specify the port number the
+server is running on, if known.
+
+
+
+File Manifest:
+
+server.py: Contains the Python code for running the chat server, which is responsible for 
+receiving new connections from clients, receiving messages from clients, and sending
+messages received from clients out to all other clients
+
+client.py: Contains the Python code for clients communicating with the chat server.
+Multiple instances of client.py can be run at the same time, allowing multiple clients
+to send messages to the chat server, which will forward their messages to each other,
+allowing the clients to communicate
+
+chatlib.py: Contains functions used by both client and server for opening new sockets,
+reading from sockets, and writing to sockets, integrating the appropriate error-checking
+required for each of those tasks in each function
