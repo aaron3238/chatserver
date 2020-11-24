@@ -37,3 +37,22 @@ allowing the clients to communicate
 chatlib.py: Contains functions used by both client and server for opening new sockets,
 reading from sockets, and writing to sockets, integrating the appropriate error-checking
 required for each of those tasks in each function
+
+
+
+Responsibility Matrix:
+
+
+                        Client.py      Server.py      Chatlib.py     README.txt
+                        
+Nicholas Morello                           X
+
+Nik Golombek                               X
+
+David Nelson                                              X              X
+
+Aaron Pritchard             X
+
+
+
+
