@@ -19,6 +19,10 @@ import chatlib
 global MAXBUFFERSIZE
 MAXBUFFERSIZE = 2048
 
+# Set the nickname of the client
+# Name: setNickname
+# Arguments: none
+# Return Value: none
 def setNickname():
     nickname = sys.stdin.readline()
     chatlib.write_msg(server, nickname, MAXBUFFERSIZE)
@@ -30,42 +34,37 @@ if (len(sys.argv) != 2) and (len(sys.argv) != 3):
 	print "Correct usage: script, IP address, (optional) port number"
 	exit()  
 IP_address = str(sys.argv[1]) 
-# takes second argument from command prompt as port number
+# Takes second argument from command prompt as port number
 if len(sys.argv) == 3:
 	Port = int(sys.argv[2]) 
 else:
-  #default port
+  # Default port
   Port = 8888
 
 server.settimeout(5)
+
+# Tries to connect or gives the error otherwise
 try:
     server.connect((IP_address, Port)) 
-except Exception as e: 
-    print(e)
+except socket.error as e: 
+    print("Error Connectioning: %s" % e)
     server.close()
     exit()
-   
+
+# Var to keep track of the nickname status
 nickSet = ""
 while True: 
     try:
-    # maintains a list of possible input streams 
+    # Maintains a list of possible input streams 
         sockets_list = [sys.stdin, server] 
   
-    # """ There are two possible input situations. Either the 
-    # user wants to give  manual input to send to other people, 
-    # or the server is sending a message  to be printed on the 
-    # screen. Select returns from sockets_list, the stream that 
-    # is reader for input. So for example, if the server wants 
-    # to send a message, then the if condition will hold true 
-    # below.If the user wants to send a message, the else 
-    # condition will evaluate as true"""
-    
+        # Allows to differentiate between reading from the server or sending to the server
         read_sockets,write_socket, error_socket = select.select(sockets_list,[],[]) 
 
-    
         for socks in read_sockets: 
             if socks == server:
                 message = chatlib.read_msg(socks,MAXBUFFERSIZE) 
+                #Decodes protocols sent from the server
                 if message == "SERVER CLOSED":
                     print message
                     server.close
@@ -84,22 +83,21 @@ while True:
                     nickSet = "INVALID"
                 else:
                     print message
-            elif nickSet == "INIT":
+
+            # Sends a nick name to the server
+            elif nickSet == "INIT" or nickSet == "RETRY" or nickSet == "INVALID" :
                 setNickname()
                 nickSet = ""
-            elif nickSet == "RETRY":
-                setNickname()
-                nickSet = ""
-            elif nickSet == "INVALID":
-                setNickname()
-                nickSet = ""
+            # If the client has a nickname then they can send messages
             elif nickSet == True:
                 message = sys.stdin.readline()
                 chatlib.write_msg(server, message, MAXBUFFERSIZE)
                 sys.stdout.write("<You>")
                 sys.stdout.write(message)
                 sys.stdout.flush()
+    
     except KeyboardInterrupt:
+        # Tells the server that the client is disconnecting
         chatlib.write_msg(server, "BYE", MAXBUFFERSIZE)
         break
 
