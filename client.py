@@ -92,7 +92,7 @@ while True:
             elif nickSet == True:
                 message = sys.stdin.readline()
                 chatlib.write_msg(server, message, MAXBUFFERSIZE)
-                sys.stdout.write("<You>")
+                sys.stdout.write("<You> ")
                 sys.stdout.write(message)
                 sys.stdout.flush()
     

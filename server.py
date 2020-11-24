@@ -63,7 +63,8 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 				chatlib.write_msg(conn, "READY", MAXBUFFERSIZE)
 				clientNicknames.append(nickname)
 				threadStream[0] = str(dateTime) + ", " + str(addr) + ", " + nickname + " connected.\n"
-				broadcast(nickname, conn, list_of_clients)
+				message_to_send = "<" + nickname + ">" " joined the chatroom.\n"
+				broadcast(message_to_send, conn, list_of_clients)
 				break
 			else:
 				chatlib.write_msg(conn, "RETRY", MAXBUFFERSIZE)
