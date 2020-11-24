@@ -47,7 +47,7 @@ server.settimeout(5)
 try:
     server.connect((IP_address, Port)) 
 except socket.error as e: 
-    print("Error Connectioning: %s" % e)
+    print("Error Connecting: %s" % e)
     server.close()
     exit()
 

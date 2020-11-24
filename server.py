@@ -50,7 +50,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 		uniqueName = True
 		nickname = ""		
 		message = chatlib.read_msg(conn,MAXBUFFERSIZE) 
-		nickname = message.rstrip() # Get rid of the newline
+		nickname = str(message.rstrip()) # Get rid of the newline
 		if nickname == "BYE": # In case the client disconnects before making a nickname
 			threadStream[0] = str(dateTime) + ", " + str(addr) + " Left before creating a nickname\n"
 			remove(conn, list_of_clients)
