@@ -33,7 +33,15 @@ def log(message):
 	f.write(message)
 	f.close()
 
-
+# Worker thread for each connected client
+# Name: clientthread
+# Arguments: conn,addr - connection to the client
+#            clientNicknames - list of nicknames in use
+#            list_of_clients - list of connected clients
+#            end_event - tells the thread when it can end
+#            threadStream - shared memory to send messages to the main thread
+# Return: None
+# Return Value: None
 def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, threadStream):
 	# Nickname collection 
 	
