@@ -46,12 +46,13 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 	# Nickname collection 
 	
 	while end_event.is_set():
+		dateTime = datetime.now()
 		uniqueName = True
 		nickname = ""		
 		message = chatlib.read_msg(conn,MAXBUFFERSIZE) 
 		nickname = message.rstrip() # Get rid of the newline
 		if nickname == "BYE": # In case the client disconnects before making a nickname
-			threadStream[0] = str(addr) + " Left before creating a nickname"
+			threadStream[0] = str(dateTime) + ", " + str(addr) + " Left before creating a nickname\n"
 			remove(conn, list_of_clients)
 			return
 		if re.match("^[a-zA-Z0-9]{2,30}$", nickname): # Ensure the nickname is alphanumeric, no spaces allowed
@@ -61,8 +62,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 			if uniqueName:
 				chatlib.write_msg(conn, "READY", MAXBUFFERSIZE)
 				clientNicknames.append(nickname)
-				dateTime = datetime.now()
-				threadStream[0] = str(dateTime) + " " + str(addr) + " " + nickname + "\n"
+				threadStream[0] = str(dateTime) + ", " + str(addr) + ", " + nickname + " connected.\n"
 				broadcast(nickname, conn, list_of_clients)
 				break
 			else:
@@ -78,7 +78,7 @@ def clientthread(conn, addr, clientNicknames, list_of_clients, end_event, thread
 
 				if message == "BYE": # If client disconnects
 					message_to_send = "<" + nickname + ">" " left the chatroom.\n"
-					threadStream[0] = message_to_send
+					threadStream[0] = str(dateTime) + ", " + str(addr) + ", " + nickname + " disconnected.\n"
 					broadcast(message_to_send, conn, list_of_clients) # Let everyone know 
 					clientNicknames.remove(nickname) # Remove from list of nicknames
 					remove(conn, list_of_clients) # Remove the connection
