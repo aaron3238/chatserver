@@ -28,10 +28,13 @@ MAXBUFFERSIZE = 2048
 # Arguments: Message - message to log to the file
 # Return Value: None
 def log(message):
-	f = open("chatlog.txt", "a")
-	print(message)
-	f.write(message)
-	f.close()
+	try:
+		f = open("chatlog.txt", "a")
+		print(message)
+		f.write(message)
+		f.close()
+	except Exception as err:
+		print("File error: %s" % err)
 
 # Worker thread for each connected client
 # Name: clientthread
